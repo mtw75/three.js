@@ -61,11 +61,11 @@ function WebVRManager( renderer ) {
 
 	}
 
-	if ( typeof window !== 'undefined' ) {
-
-		window.addEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange, false );
-
-	}
+//	if ( typeof window !== 'undefined' ) {
+//
+//		window.addEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange, false );
+//
+//	}
 
 	//
 

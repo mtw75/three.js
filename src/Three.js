@@ -1,8 +1,10 @@
 import './polyfills.js';
 
+export * from './qml/QmlHtmlElements.js'; //QtPort
 export { WebGLRenderTargetCube } from './renderers/WebGLRenderTargetCube.js';
 export { WebGLRenderTarget } from './renderers/WebGLRenderTarget.js';
-export { WebGLRenderer } from './renderers/WebGLRenderer.js';
+export { Canvas3DRenderer } from './qml/Canvas3DRenderer.js'; //QtPort
+// export { WebGLRenderer } from './renderers/WebGLRenderer.js';
 // export { WebGL2Renderer } from './renderers/WebGL2Renderer.js';
 export { ShaderLib } from './renderers/shaders/ShaderLib.js';
 export { UniformsLib } from './renderers/shaders/UniformsLib.js';
@@ -43,12 +45,13 @@ export { DefaultLoadingManager, LoadingManager } from './loaders/LoadingManager.
 export { JSONLoader } from './loaders/JSONLoader.js';
 export { ImageLoader } from './loaders/ImageLoader.js';
 export { ImageBitmapLoader } from './loaders/ImageBitmapLoader.js';
-export { FontLoader } from './loaders/FontLoader.js';
+// breaks export { FontLoader } from './loaders/FontLoader.js';
 export { FileLoader } from './loaders/FileLoader.js';
 export { Loader } from './loaders/Loader.js';
 export { LoaderUtils } from './loaders/LoaderUtils.js';
 export { Cache } from './loaders/Cache.js';
 export { AudioLoader } from './loaders/AudioLoader.js';
+
 export { SpotLightShadow } from './lights/SpotLightShadow.js';
 export { SpotLight } from './lights/SpotLight.js';
 export { PointLight } from './lights/PointLight.js';
@@ -143,11 +146,11 @@ export * from './extras/curves/Curves.js';
 export { Shape } from './extras/core/Shape.js';
 export { Path } from './extras/core/Path.js';
 export { ShapePath } from './extras/core/ShapePath.js';
-export { Font } from './extras/core/Font.js';
+// breaks  export { Font } from './extras/core/Font.js';
 export { CurvePath } from './extras/core/CurvePath.js';
 export { Curve } from './extras/core/Curve.js';
 export { ShapeUtils } from './extras/ShapeUtils.js';
 export { SceneUtils } from './extras/SceneUtils.js';
 export { WebGLUtils } from './renderers/webgl/WebGLUtils.js';
 export * from './constants.js';
-export * from './Three.Legacy.js';
+// export * from './Three.Legacy.js';

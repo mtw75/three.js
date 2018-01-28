@@ -31,13 +31,13 @@ Object.assign( FileLoader.prototype, {
 
 			scope.manager.itemStart( url );
 
-			setTimeout( function () {
+//			setTimeout( function () {
 
 				if ( onLoad ) onLoad( cached );
 
 				scope.manager.itemEnd( url );
 
-			}, 0 );
+//			}, 0 );
 
 			return cached;
 
@@ -60,95 +60,95 @@ Object.assign( FileLoader.prototype, {
 		}
 
 		// Check for data: URI
-		var dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
-		var dataUriRegexResult = url.match( dataUriRegex );
-
-		// Safari can not handle Data URIs through XMLHttpRequest so process manually
-		if ( dataUriRegexResult ) {
-
-			var mimeType = dataUriRegexResult[ 1 ];
-			var isBase64 = !! dataUriRegexResult[ 2 ];
-			var data = dataUriRegexResult[ 3 ];
-
-			data = window.decodeURIComponent( data );
-
-			if ( isBase64 ) data = window.atob( data );
-
-			try {
-
-				var response;
-				var responseType = ( this.responseType || '' ).toLowerCase();
-
-				switch ( responseType ) {
-
-					case 'arraybuffer':
-					case 'blob':
-
-						var view = new Uint8Array( data.length );
-
-						for ( var i = 0; i < data.length; i ++ ) {
-
-							view[ i ] = data.charCodeAt( i );
-
-						}
-
-						if ( responseType === 'blob' ) {
-
-							response = new Blob( [ view.buffer ], { type: mimeType } );
-
-						} else {
-
-							response = view.buffer;
-
-						}
-
-						break;
-
-					case 'document':
-
-						var parser = new DOMParser();
-						response = parser.parseFromString( data, mimeType );
-
-						break;
-
-					case 'json':
-
-						response = JSON.parse( data );
-
-						break;
-
-					default: // 'text' or other
-
-						response = data;
-
-						break;
-
-				}
-
-				// Wait for next browser tick like standard XMLHttpRequest event dispatching does
-				window.setTimeout( function () {
-
-					if ( onLoad ) onLoad( response );
-
-					scope.manager.itemEnd( url );
-
-				}, 0 );
-
-			} catch ( error ) {
-
-				// Wait for next browser tick like standard XMLHttpRequest event dispatching does
-				window.setTimeout( function () {
-
-					if ( onError ) onError( error );
-
-					scope.manager.itemEnd( url );
-					scope.manager.itemError( url );
-
-				}, 0 );
-
-			}
-
-		} else {
+//		var dataUriRegex = /^data:(.*?)(;base64)?,(.*)$/;
+//		var dataUriRegexResult = url.match( dataUriRegex );
+//
+//		// Safari can not handle Data URIs through XMLHttpRequest so process manually
+//		if ( dataUriRegexResult ) {
+//
+//			var mimeType = dataUriRegexResult[ 1 ];
+//			var isBase64 = !! dataUriRegexResult[ 2 ];
+//			var data = dataUriRegexResult[ 3 ];
+//
+//			data = window.decodeURIComponent( data );
+//
+//			if ( isBase64 ) data = window.atob( data );
+//
+//			try {
+//
+//				var response;
+//				var responseType = ( this.responseType || '' ).toLowerCase();
+//
+//				switch ( responseType ) {
+//
+//					case 'arraybuffer':
+//					case 'blob':
+//
+//						var view = new Uint8Array( data.length );
+//
+//						for ( var i = 0; i < data.length; i ++ ) {
+//
+//							view[ i ] = data.charCodeAt( i );
+//
+//						}
+//
+//						if ( responseType === 'blob' ) {
+//
+//							response = new Blob( [ view.buffer ], { type: mimeType } );
+//
+//						} else {
+//
+//							response = view.buffer;
+//
+//						}
+//
+//						break;
+//
+//					case 'document':
+//
+//						var parser = new DOMParser();
+//						response = parser.parseFromString( data, mimeType );
+//
+//						break;
+//
+//					case 'json':
+//
+//						response = JSON.parse( data );
+//
+//						break;
+//
+//					default: // 'text' or other
+//
+//						response = data;
+//
+//						break;
+//
+//				}
+//
+//				// Wait for next browser tick like standard XMLHttpRequest event dispatching does
+//				window.setTimeout( function () {
+//
+//					if ( onLoad ) onLoad( response );
+//
+//					scope.manager.itemEnd( url );
+//
+//				}, 0 );
+//
+//			} catch ( error ) {
+//
+//				// Wait for next browser tick like standard XMLHttpRequest event dispatching does
+//				window.setTimeout( function () {
+//
+//					if ( onError ) onError( error );
+//
+//					scope.manager.itemEnd( url );
+//					scope.manager.itemError( url );
+//
+//				}, 0 );
+//
+//			}
+//
+//		} else {
 
 			// Initialise array for duplicate requests
 
@@ -164,91 +164,29 @@ Object.assign( FileLoader.prototype, {
 
 			var request = new XMLHttpRequest();
 
-			request.open( 'GET', url, true );
+// Qt Port
+            request.onreadystatechange = function() {
+                if (request.readyState === XMLHttpRequest.DONE) {
+                    if (request.status == 200 || request.status == 0) {
+                        var response;
+                        response = request.response;
+                        if ( onLoad ) onLoad( response );
+                        THREE.Cache.add( url, response );
+                        scope.manager.itemEnd( url );
+                    } else {
+                        if ( onError !== undefined ) {
+                             onError();
+                        }
+                    }
+                } else if (request.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+                    if ( onProgress !== undefined ) {
+                        onProgress();
+                    }
+                }
+            };
 
-			request.addEventListener( 'load', function ( event ) {
-
-				var response = this.response;
-
-				Cache.add( url, response );
-
-				var callbacks = loading[ url ];
-
-				delete loading[ url ];
-
-				if ( this.status === 200 ) {
-
-					for ( var i = 0, il = callbacks.length; i < il; i ++ ) {
-
-						var callback = callbacks[ i ];
-						if ( callback.onLoad ) callback.onLoad( response );
-
-					}
-
-					scope.manager.itemEnd( url );
-
-				} else if ( this.status === 0 ) {
-
-					// Some browsers return HTTP Status 0 when using non-http protocol
-					// e.g. 'file://' or 'data://'. Handle as success.
-
-					console.warn( 'THREE.FileLoader: HTTP Status 0 received.' );
-
-					for ( var i = 0, il = callbacks.length; i < il; i ++ ) {
-
-						var callback = callbacks[ i ];
-						if ( callback.onLoad ) callback.onLoad( response );
-
-					}
-
-					scope.manager.itemEnd( url );
-
-				} else {
-
-					for ( var i = 0, il = callbacks.length; i < il; i ++ ) {
-
-						var callback = callbacks[ i ];
-						if ( callback.onError ) callback.onError( event );
-
-					}
-
-					scope.manager.itemEnd( url );
-					scope.manager.itemError( url );
-
-				}
-
-			}, false );
-
-			request.addEventListener( 'progress', function ( event ) {
-
-				var callbacks = loading[ url ];
-
-				for ( var i = 0, il = callbacks.length; i < il; i ++ ) {
-
-					var callback = callbacks[ i ];
-					if ( callback.onProgress ) callback.onProgress( event );
-
-				}
-
-			}, false );
-
-			request.addEventListener( 'error', function ( event ) {
-
-				var callbacks = loading[ url ];
-
-				delete loading[ url ];
-
-				for ( var i = 0, il = callbacks.length; i < il; i ++ ) {
-
-					var callback = callbacks[ i ];
-					if ( callback.onError ) callback.onError( event );
-
-				}
-
-				scope.manager.itemEnd( url );
-				scope.manager.itemError( url );
-
-			}, false );
+            request.open( 'GET', url, true );
+//Qt Port
 
 			if ( this.responseType !== undefined ) request.responseType = this.responseType;
 			if ( this.withCredentials !== undefined ) request.withCredentials = this.withCredentials;
@@ -263,7 +201,7 @@ Object.assign( FileLoader.prototype, {
 
 			request.send( null );
 
-		}
+//		}
 
 		scope.manager.itemStart( url );
 

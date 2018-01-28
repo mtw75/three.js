@@ -30,6 +30,7 @@ export default {
 		glsl()
 	],
 	// sourceMap: true,
+    intro: "var document = new _document();",
 	output: [
 		{
 			format: 'umd',

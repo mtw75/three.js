@@ -51,13 +51,13 @@ ImageBitmapLoader.prototype = {
 
 			scope.manager.itemStart( url );
 
-			setTimeout( function () {
+//			setTimeout( function () {
 
 				if ( onLoad ) onLoad( cached );
 
 				scope.manager.itemEnd( url );
 
-			}, 0 );
+//			}, 0 );
 
 			return cached;
 

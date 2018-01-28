@@ -4,6 +4,7 @@
 
 import { LinearFilter, NearestFilter, RGBFormat, RGBAFormat, DepthFormat, DepthStencilFormat, UnsignedShortType, UnsignedIntType, UnsignedInt248Type, FloatType, HalfFloatType, ClampToEdgeWrapping, NearestMipMapLinearFilter, NearestMipMapNearestFilter } from '../../constants.js';
 import { _Math } from '../../math/Math.js';
+import { QtQuickItemTexture } from '../../qml/QtQuickItemTexture.js';
 
 function WebGLTextures( _gl, extensions, state, properties, capabilities, utils, infoMemory ) {
 
@@ -21,12 +22,14 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			var scale = maxSize / Math.max( image.width, image.height );
 
-			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
-			canvas.width = Math.floor( image.width * scale );
-			canvas.height = Math.floor( image.height * scale );
+//			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+//			canvas.width = Math.floor( image.width * scale );
+//			canvas.height = Math.floor( image.height * scale );
+//
+//			var context = canvas.getContext( '2d' );
+//			context.drawImage( image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height );
+            var canvas = image.resize( Math.floor( image.width * scale), Math.floor( image.height * scale ) );
 
-			var context = canvas.getContext( '2d' );
-			context.drawImage( image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height );
 
 			console.warn( 'THREE.WebGLRenderer: image is too big (' + image.width + 'x' + image.height + '). Resized to ' + canvas.width + 'x' + canvas.height, image );
 
@@ -44,26 +47,26 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
-	function makePowerOfTwo( image ) {
-
-		if ( image instanceof HTMLImageElement || image instanceof HTMLCanvasElement || image instanceof ImageBitmap ) {
-
-			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
-			canvas.width = _Math.floorPowerOfTwo( image.width );
-			canvas.height = _Math.floorPowerOfTwo( image.height );
-
-			var context = canvas.getContext( '2d' );
-			context.drawImage( image, 0, 0, canvas.width, canvas.height );
-
-			console.warn( 'THREE.WebGLRenderer: image is not power of two (' + image.width + 'x' + image.height + '). Resized to ' + canvas.width + 'x' + canvas.height, image );
-
-			return canvas;
-
-		}
-
-		return image;
-
-	}
+//	function makePowerOfTwo( image ) {
+//
+//		if ( image instanceof HTMLImageElement || image instanceof HTMLCanvasElement || image instanceof ImageBitmap ) {
+//
+//			var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+//			canvas.width = _Math.floorPowerOfTwo( image.width );
+//			canvas.height = _Math.floorPowerOfTwo( image.height );
+//
+//			var context = canvas.getContext( '2d' );
+//			context.drawImage( image, 0, 0, canvas.width, canvas.height );
+//
+//			console.warn( 'THREE.WebGLRenderer: image is not power of two (' + image.width + 'x' + image.height + '). Resized to ' + canvas.width + 'x' + canvas.height, image );
+//
+//			return canvas;
+//
+//		}
+//
+//		return image;
+//
+//	}
 
 	function textureNeedsPowerOfTwo( texture ) {
 
@@ -208,7 +211,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 				console.warn( 'THREE.WebGLRenderer: Texture marked for update but image is undefined', texture );
 
-			} else if ( image.complete === false ) {
+            } else if ( image.complete === false && !(texture instanceof QtQuickItemTexture) ) {
 
 				console.warn( 'THREE.WebGLRenderer: Texture marked for update but image is incomplete', texture );
 
@@ -285,7 +288,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 						} else {
 
-							state.texImage2D( _gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glFormat, glFormat, glType, cubeImage[ i ] );
+                            state.texImage2D( _gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glFormat, glFormat, glType, cubeImage[ i ].texImage() );
 
 						}
 
@@ -402,6 +405,26 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	}
 
 	function uploadTexture( textureProperties, texture, slot ) {
+        if ( texture instanceof QtQuickItemTexture ) {
+            var canvasTextureProvider = _gl.getExtension("QTCANVAS3D_texture_provider");
+            textureProperties.__webglInit = true;
+
+            if ( canvasTextureProvider !== null )
+                textureProperties.__webglTexture = canvasTextureProvider.createTextureFromSource(texture.quickItem);
+            else
+                textureProperties.__webglTexture = 0;
+
+            _gl.bindTexture( _gl.TEXTURE_2D, textureProperties.__webglTexture );
+
+            var isImagePowerOfTwo = Math.isPowerOfTwo( texture.quickItem.width ) && Math.isPowerOfTwo( texture.quickItem.height );
+
+            if (isImagePowerOfTwo) {
+                _gl.texParameteri( _gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, paramThreeToGL( texture.wrapS ) );
+                _gl.texParameteri( _gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, paramThreeToGL( texture.wrapT ) );
+           } else if ( texture.wrapS !== ClampToEdgeWrapping || texture.wrapT !== ClampToEdgeWrapping ) {
+               THREE.warn( 'THREE.Canvas3DRenderer: Quick item width and/or height are not power of two. Texture.wrapS and Texture.wrapT should be set to THREE.ClampToEdgeWrapping.' );
+           }
+        } else {
 
 		if ( textureProperties.__webglInit === undefined ) {
 
@@ -432,7 +455,8 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		if ( textureNeedsPowerOfTwo( texture ) && isPowerOfTwo( image ) === false ) {
 
-			image = makePowerOfTwo( image );
+//			image = makePowerOfTwo( image );
+            console.warn( 'THREE.Canvas3DRenderer: image is not power of two (' + image.width + 'x' + image.height + ').', image );
 
 		}
 
@@ -570,12 +594,12 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			} else {
 
-				state.texImage2D( _gl.TEXTURE_2D, 0, glFormat, glFormat, glType, image );
+                state.texImage2D( _gl.TEXTURE_2D, 0, glFormat, glFormat, glType, image.texImage() );
 
 			}
 
 		}
-
+        }
 		if ( textureNeedsGenerateMipmaps( texture, isPowerOfTwoImage ) ) _gl.generateMipmap( _gl.TEXTURE_2D );
 
 		textureProperties.__version = texture.version;
