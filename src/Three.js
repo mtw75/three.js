@@ -152,5 +152,6 @@ export { Curve } from './extras/core/Curve.js';
 export { ShapeUtils } from './extras/ShapeUtils.js';
 export { SceneUtils } from './extras/SceneUtils.js';
 export { WebGLUtils } from './renderers/webgl/WebGLUtils.js';
+export { QtQuickItemTexture } from './qml/QtQuickItemTexture.js';
 export * from './constants.js';
 // export * from './Three.Legacy.js';

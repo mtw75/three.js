@@ -5,7 +5,7 @@
 import { Texture } from '../textures/Texture.js';
 
 function  QtQuickItemTexture( quickItem, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy ) {
-
+	
     Texture.call( this, null, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy );
 
     this.generateMipmaps = false;
@@ -15,7 +15,7 @@ function  QtQuickItemTexture( quickItem, mapping, wrapS, wrapT, magFilter, minFi
 
 };
 
-//QtQuickItemTexture.prototype = Object.create( Texture.prototype );
-//QtQuickItemTexture.prototype.constructor = QtQuickItemTexture;
+QtQuickItemTexture.prototype = Object.create( Texture.prototype );
+QtQuickItemTexture.prototype.constructor = QtQuickItemTexture;
 
 export { QtQuickItemTexture };

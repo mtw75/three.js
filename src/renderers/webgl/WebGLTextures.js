@@ -211,7 +211,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 				console.warn( 'THREE.WebGLRenderer: Texture marked for update but image is undefined', texture );
 
-            } else if ( image.complete === false && !(texture instanceof QtQuickItemTexture) ) {
+            } else if ( !(texture instanceof QtQuickItemTexture) && image.complete === false  ) {
 
 				console.warn( 'THREE.WebGLRenderer: Texture marked for update but image is incomplete', texture );
 
@@ -416,11 +416,11 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
             _gl.bindTexture( _gl.TEXTURE_2D, textureProperties.__webglTexture );
 
-            var isImagePowerOfTwo = Math.isPowerOfTwo( texture.quickItem.width ) && Math.isPowerOfTwo( texture.quickItem.height );
+            var isImagePowerOfTwo = _Math.isPowerOfTwo( texture.quickItem.width ) && _Math.isPowerOfTwo( texture.quickItem.height );
 
             if (isImagePowerOfTwo) {
-                _gl.texParameteri( _gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, paramThreeToGL( texture.wrapS ) );
-                _gl.texParameteri( _gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, paramThreeToGL( texture.wrapT ) );
+                _gl.texParameteri( _gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, utils.convert( texture.wrapS ) );
+                _gl.texParameteri( _gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, utils.convert( texture.wrapT ) );
            } else if ( texture.wrapS !== ClampToEdgeWrapping || texture.wrapT !== ClampToEdgeWrapping ) {
                THREE.warn( 'THREE.Canvas3DRenderer: Quick item width and/or height are not power of two. Texture.wrapS and Texture.wrapT should be set to THREE.ClampToEdgeWrapping.' );
            }
